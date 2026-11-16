@@ -1,0 +1,48 @@
+<div align="center">
+
+<img src="src/main/resources/assets/immersive_portals/icon.png" alt="Logo de Immersive Portals" width="120">
+
+<h1>Immersive Portals</h1>
+<p>Veja o outro lado dos portais e atravesse dimensões pelo próprio portal.</p>
+<p><strong>Minecraft 1.21.11 · Fabric · Java 21</strong></p>
+
+</div>
+
+[Instalação](#instalação) · [Uso](#uso) · [Como funciona](#como-funciona) · [Créditos](#créditos)
+
+## Instalação
+
+Coloque o JAR `build/libs/immersive-portals-fabric-12111-6.0.7-arthous.1.jar` na pasta `mods/` do cliente e do servidor. Instale também **Fabric API** para esta versão do Minecraft.
+
+| Minecraft | Loader | Java | Versão do mod |
+| --- | --- | --- | --- |
+| 1.21.11 | Fabric 0.17.0 (loader); build local com 0.19.5 | 21 | 6.0.7-arthous.1 |
+
+## Uso
+
+Acenda um portal do Nether no mundo de teste e aproxime-se para ver o outro lado pela abertura. A travessia ocorre ao cruzar o plano do portal. No criativo, procure **Portal Wand** para criar, arrastar e copiar portais personalizados. Siga as instruções que a varinha mostra durante a seleção.
+
+## Como funciona
+
+- **Visão e travessia:** o cliente recebe blocos e entidades do destino para renderizar a cena através do portal. Em portais compatíveis, a passagem acontece sem a transição normal de carregamento.
+- **Construção:** a varinha marca origem e destino. Portais personalizados podem ter rotação ou escala diferentes. O menu da varinha indica quais ações cabem no modo escolhido.
+- **Administração:** aponte para o portal e use a família de comandos `/portal`. Exemplos incluem `/portal set_portal_scale` para escala, `/portal complete_bi_way_portal` para completar a passagem nos dois sentidos e `/portal dimension_stack` para organizar conexões entre dimensões. O preenchimento automático do jogo mostra os argumentos aceitos.
+- **Compatibilidade:** as pontes para renderizadores adicionais funcionam conforme as versões disponíveis para o jogo e o loader usados. Use as dependências do mesmo alvo de Minecraft.
+
+### Configuração
+
+O arquivo `config/immersive_portals.json` controla opções como som através de portais, limite de portais renderizados, interação remota entre os mundos do jogo e uso da varinha no sobrevivência. O jogo gera a configuração no primeiro uso.
+
+A versão Fabric inclui a integração com **Mod Menu** para acesso às opções quando ele está presente.
+
+## Créditos
+
+Código de origem por **qouteall** e colaboradores do [Immersive Portals](https://github.com/iPortalTeam/ImmersivePortalsMod). O port de Minecraft 1.21.11 usado como base é de **hooneybAdgers**. Adaptações locais desta variante por [Arthou](https://github.com/arthoou). A [proveniência das fontes](SOURCE-PROVENANCE.md) traz o JAR de origem e os detalhes de reconstrução. Consulte a [licença Apache 2.0](LICENSE).
+
+## Compilar
+
+```bash
+./gradlew build
+```
+
+A saída de distribuição aparece no caminho indicado em **Instalação**.

@@ -1,0 +1,263 @@
+package qouteall.imm_ptl.peripheral;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import com.mojang.logging.LogUtils;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.LevelBasedPermissionSet;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.CreativeModeTab.Output;
+import net.minecraft.world.item.Item.Properties;
+import net.minecraft.world.item.Item.TooltipContext;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import qouteall.imm_ptl.core.IPGlobal;
+import qouteall.imm_ptl.core.McHelper;
+import qouteall.imm_ptl.core.commands.PortalCommand;
+import qouteall.q_misc_util.platform.Platform;
+
+public class CommandStickItem extends Item {
+   private static final Logger LOGGER = LogUtils.getLogger();
+   public static final Codec<CommandStickItem.Data> DATA_CODEC = RecordCodecBuilder.create(
+      instance -> instance.group(
+            Codec.STRING.fieldOf("command").forGetter(CommandStickItem.Data::command),
+            Codec.STRING.fieldOf("nameTranslationKey").forGetter(CommandStickItem.Data::nameTranslationKey),
+            Codec.STRING.listOf().fieldOf("descriptionTranslationKeys").forGetter(CommandStickItem.Data::descriptionTranslationKeys)
+         )
+         .apply(instance, CommandStickItem.Data::new)
+   );
+   public static final DataComponentType<CommandStickItem.Data> COMPONENT_TYPE = DataComponentType.<CommandStickItem.Data>builder()
+      .persistent(DATA_CODEC)
+      .build();
+   public static final LinkedHashMap<String, CommandStickItem.Data> BUILT_IN_COMMAND_STICK_TYPES = new LinkedHashMap<>();
+   public static final CommandStickItem instance = new CommandStickItem(
+      new Properties().setId(ResourceKey.create(Registries.ITEM, McHelper.newResourceLocation("immersive_portals:command_stick")))
+   );
+
+   public static void registerBuiltInCommandStick(CommandStickItem.Data data) {
+      BUILT_IN_COMMAND_STICK_TYPES.put(data.command, data);
+   }
+
+   public CommandStickItem(Properties settings) {
+      super(settings);
+   }
+
+   @Override
+   public boolean isFoil(ItemStack stack) {
+      return true;
+   }
+
+   @Override
+   public InteractionResult use(Level world, Player player, InteractionHand hand) {
+      this.doUse(player, player.getItemInHand(hand));
+      return super.use(world, player, hand);
+   }
+
+   private void doUse(Player player, ItemStack stack) {
+      if (!player.level().isClientSide()) {
+         if (canUseCommand(player)) {
+            CommandStickItem.Data data = stack.get(COMPONENT_TYPE);
+            if (data == null) {
+               LOGGER.error("Missing component in command stick item {}", stack);
+               return;
+            }
+
+            CommandSourceStack commandSource = ((ServerPlayer)player).createCommandSourceStack().withPermission(LevelBasedPermissionSet.GAMEMASTER);
+            MinecraftServer server = player.level().getServer();
+            assert server != null;
+            Commands commandManager = server.getCommands();
+            String command = data.command;
+            if (command.startsWith("/")) {
+               command = command.substring(1);
+            }
+
+            commandManager.performPrefixedCommand(commandSource, command);
+         } else {
+            sendMessage(player, Component.literal("No Permission"));
+         }
+      }
+   }
+
+   private static boolean canUseCommand(Player player) {
+      return IPGlobal.easeCommandStickPermission ? true : player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER) || player.isCreative();
+   }
+
+   @Override
+   public void appendHoverText(
+      ItemStack stack, TooltipContext tooltipContext, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag tooltipFlag
+   ) {
+      super.appendHoverText(stack, tooltipContext, tooltipDisplay, tooltip, tooltipFlag);
+      CommandStickItem.Data data = stack.get(COMPONENT_TYPE);
+      if (data != null) {
+         for (String commandPortion : Splitter.fixedLength(40).split(data.command)) {
+            tooltip.accept(Component.literal(commandPortion).withStyle(ChatFormatting.GOLD));
+         }
+
+         for (String descriptionTranslationKey : data.descriptionTranslationKeys) {
+            tooltip.accept(Component.translatable(descriptionTranslationKey).withStyle(ChatFormatting.AQUA));
+         }
+
+         tooltip.accept(Component.translatable("imm_ptl.command_stick").withStyle(ChatFormatting.GRAY));
+      }
+   }
+
+   @NotNull
+   @Override
+   public Component getName(ItemStack stack) {
+      CommandStickItem.Data data = stack.get(COMPONENT_TYPE);
+      return data == null ? Component.empty() : Component.translatable(data.nameTranslationKey);
+   }
+
+   public static void sendMessage(Player player, Component message) {
+      ((ServerPlayer)player).sendSystemMessage(message);
+   }
+
+   public static void init() {
+      Platform.get().registerBuiltIn(BuiltInRegistries.DATA_COMPONENT_TYPE, McHelper.newResourceLocation("iportal:command_stick_data"), COMPONENT_TYPE);
+      PortalCommand.createCommandStickCommandSignal.connect((player, command) -> {
+         ItemStack itemStack = new ItemStack(instance, 1);
+         CommandStickItem.Data data = new CommandStickItem.Data(command, command, new ArrayList<>());
+         itemStack.set(COMPONENT_TYPE, data);
+         player.getInventory().add(itemStack);
+         player.inventoryMenu.broadcastChanges();
+      });
+   }
+
+   public static void addIntoCreativeTag(Output entries) {
+      for (CommandStickItem.Data data : BUILT_IN_COMMAND_STICK_TYPES.values()) {
+         ItemStack stack = new ItemStack(instance);
+         stack.set(COMPONENT_TYPE, data);
+         entries.accept(stack);
+      }
+   }
+
+   public static void registerCommandStickTypes() {
+      registerPortalSubCommandStick("delete_portal");
+      registerPortalSubCommandStick("remove_connected_portals");
+      registerPortalSubCommandStick("eradicate_portal_cluster");
+      registerPortalSubCommandStick("complete_bi_way_bi_faced_portal");
+      registerPortalSubCommandStick("complete_bi_way_portal");
+      registerPortalSubCommandStick("move_portal_front", "move_portal 0.5");
+      registerPortalSubCommandStick("move_portal_back", "move_portal -0.5");
+      registerPortalSubCommandStick("move_portal_back_a_little", "move_portal -0.001");
+      registerPortalSubCommandStick("move_portal_destination_front", "move_portal_destination 0.5");
+      registerPortalSubCommandStick("move_portal_destination_back", "move_portal_destination -0.5");
+      registerPortalSubCommandStick("rotate_x", "rotate_portal_rotation_along x 15");
+      registerPortalSubCommandStick("rotate_y", "rotate_portal_rotation_along y 15");
+      registerPortalSubCommandStick("rotate_z", "rotate_portal_rotation_along z 15");
+      registerPortalSubCommandStick("make_unbreakable", "nbt {unbreakable:true}");
+      registerPortalSubCommandStick("make_fuse_view", "nbt {fuseView:true}");
+      registerPortalSubCommandStick("enable_pos_adjust", "nbt {adjustPositionAfterTeleport:true}");
+      registerPortalSubCommandStick("disable_rendering_yourself", "nbt {doRenderPlayer:false}");
+      registerPortalSubCommandStick("enable_isometric", "debug isometric_enable 50");
+      registerPortalSubCommandStick("disable_isometric", "debug isometric_disable");
+      registerPortalSubCommandStick("create_5_connected_rooms", "create_connected_rooms roomSize 6 4 6 roomNumber 5");
+      registerPortalSubCommandStick("accelerate50", "debug accelerate 50");
+      registerPortalSubCommandStick("accelerate200", "debug accelerate 200");
+      registerPortalSubCommandStick("reverse_accelerate50", "debug accelerate -50");
+      registerPortalSubCommandStick("enable_gravity_change", "nbt {teleportChangesGravity:true}");
+      registerPortalSubCommandStick("make_invisible", "nbt {isVisible:false}");
+      registerPortalSubCommandStick("make_visible", "nbt {isVisible:true}");
+      registerPortalSubCommandStick("disable_default_animation", "nbt {defaultAnimation:{durationTicks:0}}");
+      registerPortalSubCommandStick("pause_animation", "animation pause");
+      registerPortalSubCommandStick("resume_animation", "animation resume");
+      registerPortalSubCommandStick("rotate_around_y", "animation rotate_infinitely @s 0 1 0 1.0");
+      registerPortalSubCommandStick("rotate_randomly", "animation rotate_infinitely_random");
+      registerBuiltInCommandStick(
+         new CommandStickItem.Data(
+            "execute positioned 0.0 0.0 0.0 run portal animation rotate_infinitely @p ^0.0 ^0.0 ^1.0 1.7",
+            "imm_ptl.command.rotate_around_view",
+            Lists.newArrayList("imm_ptl.command_desc.rotate_around_view")
+         )
+      );
+      registerPortalSubCommandStick("expand_from_center", "animation expand_from_center 20");
+      registerPortalSubCommandStick("clear_animation", "animation clear");
+      registerPortalSubCommandStick("sculpt", "shape sculpt");
+      registerPortalSubCommandStick("reset_shape", "shape reset");
+      registerBuiltInCommandStick(
+         new CommandStickItem.Data(
+            "/attribute @s minecraft:generic.scale modifier remove iportal:scaling",
+            "imm_ptl.command.reset_iportal_scale",
+            Lists.newArrayList("imm_ptl.command_desc.reset_iportal_scale")
+         )
+      );
+      registerBuiltInCommandStick(
+         new CommandStickItem.Data(
+            "/attribute @s minecraft:player.block_interaction_range base set 100",
+            "imm_ptl.command.long_reach",
+            Lists.newArrayList("imm_ptl.command_desc.long_reach")
+         )
+      );
+      registerBuiltInCommandStick(new CommandStickItem.Data("/effect give @s minecraft:night_vision 9999 1 true", "imm_ptl.command.night_vision", List.of()));
+      registerBuiltInCommandStick(new CommandStickItem.Data("/setblock ~ ~ ~ minecraft:grass_block", "imm_ptl.command.block_on_feet", List.of()));
+      registerPortalSubCommandStick("goback");
+      registerPortalSubCommandStick("show_wiki", "wiki");
+   }
+
+   private static CommandStickItem.Data registerPortalSubCommandStick(String name) {
+      return registerPortalSubCommandStick(name, name);
+   }
+
+   private static CommandStickItem.Data registerPortalSubCommandStick(String name, String subCommand) {
+      CommandStickItem.Data data = new CommandStickItem.Data(
+         "/portal " + subCommand, "imm_ptl.command." + name, Lists.newArrayList("imm_ptl.command_desc." + name)
+      );
+      registerBuiltInCommandStick(data);
+      return data;
+   }
+
+   public record Data(String command, String nameTranslationKey, List<String> descriptionTranslationKeys) {
+      public void serialize(CompoundTag tag) {
+         tag.putString("command", this.command);
+         tag.putString("nameTranslationKey", this.nameTranslationKey);
+         ListTag listTag = new ListTag();
+
+         for (String descriptionTK : this.descriptionTranslationKeys) {
+            listTag.add(StringTag.valueOf(descriptionTK));
+         }
+
+         tag.put("descriptionTranslationKeys", listTag);
+      }
+
+      public CompoundTag toTag() {
+         CompoundTag tag = new CompoundTag();
+         this.serialize(tag);
+         return tag;
+      }
+
+      public static CommandStickItem.Data deserialize(CompoundTag tag) {
+         return new CommandStickItem.Data(
+            tag.getStringOr("command", ""),
+            tag.getStringOr("nameTranslationKey", ""),
+            tag.getListOrEmpty("descriptionTranslationKeys").stream().map(tag1 -> ((StringTag)tag1).value()).collect(Collectors.toList())
+         );
+      }
+   }
+}

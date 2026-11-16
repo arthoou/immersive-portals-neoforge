@@ -1,0 +1,56 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version '1.17.11'
+}
+
+version = project.mod_version
+group = 'qouteall'
+base { archivesName = 'immersive-portals-fabric-12111' }
+
+repositories {
+    maven { url = 'https://cursemaven.com'; content { includeGroup 'curse.maven' } }
+    mavenCentral()
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+}
+
+dependencies {
+    modCompileOnly 'curse.maven:gravity-changer-reforged-1748487:9208514'
+    modCompileOnly 'maven.modrinth:voxy:H3w2nVdU'
+    compileOnly 'maven.modrinth:distanthorizonsapi:LTP8vW3B'
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    include modImplementation('maven.modrinth:cloth-config:21.11.153+fabric')
+    include modImplementation('maven.modrinth:midnightlib:1.9.3+1.21.11-fabric')
+
+    modCompileOnly 'maven.modrinth:modmenu:17.0.1'
+    modCompileOnly 'maven.modrinth:sodium:mc1.21.11-0.8.15-beta.1-fabric'
+    modCompileOnly 'maven.modrinth:iris:1.10.8+1.21.11-fabric'
+}
+
+loom {
+    accessWidenerPath = file('src/main/resources/imm_ptl.accesswidener')
+    mixin { useLegacyMixinAp = false }
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.compilerArgs += ['-Xmaxerrs', '300']
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand(version: project.version) }
+}
+
+jar { from('LICENSE', 'SOURCE-PROVENANCE.md') }

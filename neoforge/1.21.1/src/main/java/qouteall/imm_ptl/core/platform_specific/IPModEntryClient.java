@@ -10,7 +10,6 @@ import qouteall.imm_ptl.core.CHelper;
 import qouteall.imm_ptl.core.IPGlobal;
 import qouteall.imm_ptl.core.IPMcHelper;
 import qouteall.imm_ptl.core.IPModMainClient;
-import qouteall.imm_ptl.core.compat.IPModInfoChecking;
 import qouteall.imm_ptl.core.compat.iris_compatibility.ExperimentalIrisPortalRenderer;
 import qouteall.imm_ptl.core.compat.iris_compatibility.IrisInterface;
 import qouteall.imm_ptl.core.compat.sodium_compatibility.SodiumInterface;
@@ -106,7 +105,6 @@ public class IPModEntryClient {
             Helper.log("Iris is not present");
         }
         
-        IPModInfoChecking.initClient();
     }
     
 }

@@ -1,32 +1,27 @@
-# Immersive Portals (for Neo) 🌀
+<div align="center">
 
-A NeoForge 1.21.1 port of the beloved Immersive Portals mod — step through a portal and actually *see* the other side first, then walk straight across without a loading screen breaking the illusion.
+<img src="fabric/1.21.11/src/main/resources/assets/immersive_portals/icon.png" width="120" alt="Logo de Immersive Portals">
 
-This is a local adaptation based on [iPortalTeam/ImmersivePortalsModForNeo](https://github.com/iPortalTeam/ImmersivePortalsModForNeo), originally created by qouteall and Nick1st, with the usual flock of open-source contributors. All credit for the core magic goes to them — this repo just keeps a tidy, buildable copy of the sources.
+<h1>Immersive Portals</h1>
+<p>Veja o outro lado dos portais e atravesse dimensões pelo próprio portal.</p>
 
-> 📦 Also available on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/immersive-portals-port).
+</div>
 
-## Versions
+[Baixar os JARs](https://github.com/arthoou/immersive-portals-neoforge/releases/tag/builds-2026-11-16) · [Versões](#versões) · [Créditos](#créditos)
 
-| Loader | Minecraft | Mod version | JDK | Source |
-|---|---|---|---|---|
-| neoforge | 1.21.1 | 6.0.7 | 21 | [neoforge/1.21.1](neoforge/1.21.1) |
+## Versões
 
-## Building from source
+Escolha o JAR da versão exata do Minecraft e do loader que você usa. Cada variante tem instruções próprias de instalação, uso e compilação.
 
-Install the JDK listed above for the version you want, then build from inside that folder:
+| Loader | Minecraft | Java | Versão do mod | Guia e código |
+| --- | --- | --- | --- | --- |
+| Fabric | 1.21.11 | 21 | 6.0.7-arthous.1 | [Abrir `fabric/1.21.11`](fabric/1.21.11/README.md) |
+| NeoForge | 1.21.1 | 21 | 6.0.7 | [Abrir `neoforge/1.21.1`](neoforge/1.21.1/README.md) |
 
-```sh
-cd neoforge/1.21.1
-./gradlew build
-```
+## Compilar
 
-On Windows, use `gradlew.bat build` instead. The finished jar lands in `build/libs/`. The very first build will take a little longer, since Gradle needs to download itself and every dependency the project declares.
+Abra a pasta da variante que você quer compilar, use o Java indicado na tabela e siga o comando no guia dessa versão.
 
-## About this repository
+## Créditos
 
-This repo keeps the source code and resources for the published version, folder by folder. Local caches, test worlds, compiled output and backup copies are intentionally left out — only the real, published code lives here.
-
-## License & credits
-
-Every license, credit and notice file that shipped with the original project has been kept as-is. Please check the upstream project and the license file inside the version folder before redistributing — publishing the source here doesn't change any of the declared licenses.
+Desenvolvimento, adaptações ou ports por [Arthou](https://github.com/arthoou). Cada guia acima detalha os créditos, bibliotecas e recursos usados naquela variante.

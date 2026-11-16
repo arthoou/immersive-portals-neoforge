@@ -228,18 +228,6 @@ public class O_O {
     }
     
     @Nullable
-    public static String getImmPtlModInfoUrl() {
-        String gameVersion = SharedConstants.getCurrentVersion().getName();
-        
-        if (O_O.isForge()) {
-            return "https://qouteall.fun/immptl_info/forge-%s.json".formatted(gameVersion);
-        }
-        else {
-            // it's in github pages
-            // https://github.com/qouteall/immptl_info
-            return "https://qouteall.fun/immptl_info/%s.json".formatted(gameVersion);
-        }
-    }
     
     public static boolean isModLoadedWithinVersion(String modId, @Nullable String startVersion, @Nullable String endVersion) {
         Optional<? extends ModContainer> modContainer = ModList.get().getModContainerById(modId);

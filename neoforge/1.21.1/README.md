@@ -1,35 +1,48 @@
-# Immersive Portals Mod
+<div align="center">
 
-It's a Minecraft mod that provides see-through portals and seamless teleportation. It also can create "Non-Euclidean" (Uneuclidean) space effect.
+<img src="src/main/resources/icon.png" alt="Logo de Immersive Portals" width="120">
 
-![immptl.png](https://i.loli.net/2021/09/30/chHMG45dsnZNqep.png)
+<h1>Immersive Portals</h1>
+<p>Veja o outro lado dos portais e atravesse dimensões pelo próprio portal.</p>
+<p><strong>Minecraft 1.21.1 · NeoForge · Java 21</strong></p>
 
-[On CurseForge](https://www.curseforge.com/minecraft/mc-mods/immersive-portals-mod)     [On Modrinth](https://modrinth.com/mod/immersiveportals)     [Website](https://qouteall.fun/immptl/)
+</div>
 
-This mod changes a lot of underlying Minecraft mechanics. This mod allows the client to load multiple dimensions at the same time and synchronize remote world information(blocks/entities) to client. It can render portal-in-portals. The portal rendering is roughly compatible with some versions of Sodium and Iris. The portal can transform player scale and gravity direction.  [Implementation Details](https://qouteall.fun/immptl/wiki/Implementation-Details)
+[Instalação](#instalação) · [Uso](#uso) · [Como funciona](#como-funciona) · [Créditos](#créditos)
 
-(This is the Fabric version of Immersive Portals. [The Forge version](https://github.com/iPortalTeam/ImmersivePortalsModForNeo))
+## Instalação
 
-## API
+Coloque o JAR `build/libs/immersive_portals-6.0.7-all.jar` na pasta `mods/` do cliente e do servidor. Use o JAR com sufixo `-all.jar`, que inclui a dependência Cloth Config.
 
-This mod also provides some API for:
+| Minecraft | Loader | Java | Versão do mod |
+| --- | --- | --- | --- |
+| 1.21.1 | NeoForge 21.1.228 | 21 | 6.0.7 |
 
-* Manage see-through portals
-* Dynamically add dimensions
-* Synchronize remote chunks to client
-* Render the world into GUI
-* Other utilities
+## Uso
 
-[API description](https://qouteall.fun/immptl/wiki/API-for-Other-Mods.html).
+Acenda um portal do Nether no mundo de teste e aproxime-se para ver o outro lado pela abertura. A travessia ocorre ao cruzar o plano do portal. No criativo, procure **Portal Wand** para criar, arrastar e copiar portais personalizados. Siga as instruções que a varinha mostra durante a seleção.
 
-## How to run this code
-https://fabricmc.net/wiki/tutorial:setup
+## Como funciona
 
-## Other
+- **Visão e travessia:** o cliente recebe blocos e entidades do destino para renderizar a cena através do portal. Em portais compatíveis, a passagem acontece sem a transição normal de carregamento.
+- **Construção:** a varinha marca origem e destino. Portais personalizados podem ter rotação ou escala diferentes. O menu da varinha indica quais ações cabem no modo escolhido.
+- **Administração:** aponte para o portal e use a família de comandos `/portal`. Exemplos incluem `/portal set_portal_scale` para escala, `/portal complete_bi_way_portal` para completar a passagem nos dois sentidos e `/portal dimension_stack` para organizar conexões entre dimensões. O preenchimento automático do jogo mostra os argumentos aceitos.
+- **Compatibilidade:** as pontes para renderizadores adicionais funcionam conforme as versões disponíveis para o jogo e o loader usados. Use as dependências do mesmo alvo de Minecraft.
 
-[Wiki](https://qouteall.fun/immptl/wiki/)
+### Configuração
 
-[Discord Server](https://discord.gg/BZxgURK)
+O arquivo `config/immersive_portals.json` controla opções como som através de portais, limite de portais renderizados, interação remota entre os mundos do jogo e uso da varinha no sobrevivência. O jogo gera a configuração no primeiro uso.
 
-[Support qouteall on Patreon](https://www.patreon.com/qouteall)
+A variante NeoForge integra **DuPortalLimiter** quando instalado. A ponte consulta as regras de criação e registra portais imersivos do Nether e do Aether.
 
+## Créditos
+
+Projeto original por **qouteall** e colaboradores. Port NeoForge por **Nick1st** e colaboradores do [Immersive Portals Mod for NeoForge](https://github.com/iPortalTeam/ImmersivePortalsModForNeo). Adaptações locais desta variante, incluindo a integração com DuPortalLimiter, por [Arthou](https://github.com/arthoou). Consulte a [licença Apache 2.0](LICENSE).
+
+## Compilar
+
+```bash
+java -classpath gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain build
+```
+
+O build inclui a tarefa `jarJar` para gerar o artefato completo.
